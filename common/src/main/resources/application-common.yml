@@ -1,0 +1,10 @@
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    default-property-inclusion: non_null
+
+logging:
+  level:
+    com.hjle.common: info
+    org.springframework.web: info
