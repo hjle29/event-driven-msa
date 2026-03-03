@@ -11,11 +11,23 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   discovery-service:
     build:
@@ -23,6 +35,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8761/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
   gateway-service:
     build:
@@ -42,9 +60,12 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka/
     depends_on:
-      - postgres
-      - redis
-      - discovery-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
 
   order-service:
     build:
@@ -57,9 +78,12 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka/
     depends_on:
-      - postgres
-      - redis
-      - discovery-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
 
   settlement-service:
     build:
@@ -72,9 +96,12 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka/
     depends_on:
-      - postgres
-      - redis
-      - discovery-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      discovery-service:
+        condition: service_healthy
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0

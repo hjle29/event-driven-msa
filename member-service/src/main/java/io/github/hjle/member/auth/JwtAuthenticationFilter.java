@@ -15,12 +15,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberService memberService;
 
@@ -32,15 +37,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             String email = jwtTokenProvider.getEmailFromToken(token);
-            MemberEntity member = memberService.getMemberByEmail(email);
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    member,
-                    null,
-                    List.of(new SimpleGrantedAuthority("ROLE_USER"))
-            );
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            try {
+                MemberEntity member = memberService.getMemberByEmail(email);
+                if (member != null) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            member,
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                    );
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    log.warn("JWT 토큰의 사용자를 찾을 수 없습니다.");
+                }
+            } catch (IllegalArgumentException e) {
+                log.warn("JWT 토큰의 사용자를 찾을 수 없습니다: {}", e.getMessage());
+            }
         }
 
         filterChain.doFilter(request, response);

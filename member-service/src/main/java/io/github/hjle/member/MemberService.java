@@ -30,6 +30,6 @@ public class MemberService {
 
     public MemberEntity getMemberByEmail(String email) {
         return memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자가 존재하지 않습니다. email=" + email));
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자가 존재하지 않습니다."));
     }
 }
