@@ -13,6 +13,8 @@ allprojects {
     }
 }
 
+extra["lombok.version"] = "1.18.40"
+
 subprojects {
     apply(plugin = "java")
     apply(plugin = "org.springframework.boot")

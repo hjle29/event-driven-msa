@@ -1,6 +1,7 @@
 package io.github.hjle.order;
 
 import io.github.hjle.order.dto.MemberResponse;
+import io.github.hjle.order.dto.OrderEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,9 +28,9 @@ public class OrderController {
         MemberResponse memberInfo = memberServiceClient.getMemberByUserId(userId);
 
         // 2. Order 서비스 DB에서 주문 목록 조회
-        List<OrderBaseEntity> orders = orderRepository.findByUserId(userId);
+        List<OrderEntity> orders = orderRepository.findByUserId(userId);
         if (CollectionUtils.isEmpty(orders)) {
-            new IllegalArgumentException("해당 사용자가 존재하지 않습니다. userId=" + userId);
+            throw new IllegalArgumentException("해당 사용자가 존재하지 않습니다. userId=" + userId);
         }
 
         // 3. 데이터 합쳐서 반환
@@ -40,8 +41,4 @@ public class OrderController {
         return result;
     }
 
-    @GetMapping("/status/{status}")
-    public List<OrderBaseEntity> getOrdersByStatus(@PathVariable String status) {
-        return orderRepository.findByStatus(OrderStatus.valueOf(status));
-    }
 }
