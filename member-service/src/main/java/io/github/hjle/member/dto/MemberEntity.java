@@ -33,4 +33,7 @@ public class MemberEntity {
 
     @Column(nullable = false)
     private String password;
+
+    @Builder.Default
+    private Boolean isFirstPurchase = true;
 }

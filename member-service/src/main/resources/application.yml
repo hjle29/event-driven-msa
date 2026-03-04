@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: order-service
+    name: member-service
 
   datasource:
     url: jdbc:postgresql://localhost:5432/memberdb
@@ -37,6 +37,12 @@ spring:
     type: redis
     redis:
       time-to-live: 300000
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 jwt:
   secret: mySecretKeyForJwtTokenGenerationMustBeLongEnough128bits!!

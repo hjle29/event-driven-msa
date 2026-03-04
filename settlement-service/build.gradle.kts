@@ -6,16 +6,16 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
     // patterns
-    implementation("io.github.resilience4j:resilience4j-spring-boot3:2.1.0")
-    implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.1.0")
-    implementation("io.github.resilience4j:resilience4j-retry:2.1.0")
-    implementation("io.github.resilience4j:resilience4j-timelimiter:2.1.0")
-    implementation("io.github.resilience4j:resilience4j-feign:2.1.0")
+    implementation("io.github.resilience4j:resilience4j-spring-boot3")
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker")
+    implementation("io.github.resilience4j:resilience4j-retry")
+    implementation("io.github.resilience4j:resilience4j-timelimiter")
+    implementation("io.github.resilience4j:resilience4j-feign")
 
     // Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-cache")
-    runtimeOnly("io.lettuce:lettuce-core")  // Redis 클라이언트
+    runtimeOnly("io.lettuce:lettuce-core")
 
     // Monitoring
     implementation("io.micrometer:micrometer-core")

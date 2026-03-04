@@ -27,4 +27,9 @@ public class MemberService {
         return memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다. userId=" + userId));
     }
+
+    public MemberEntity getMemberByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자가 존재하지 않습니다."));
+    }
 }

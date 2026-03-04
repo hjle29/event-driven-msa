@@ -1,13 +1,11 @@
 package io.github.hjle.member;
 
 import com.hjle.common.dto.response.ApiResponse;
-import io.github.hjle.member.dto.MemberEntity;
 import io.github.hjle.member.dto.request.SignUpRequest;
 import io.github.hjle.member.dto.response.MemberResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,14 +16,12 @@ public class MemberController {
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<MemberEntity> signUp(@Valid @RequestBody SignUpRequest request) {
-        MemberEntity response = memberService.signUp(request);
-        return ApiResponse.success(response);
+    public ApiResponse<MemberResponse> signUp(@Valid @RequestBody SignUpRequest request) {
+        return ApiResponse.success(MemberResponse.from(memberService.signUp(request)));
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<MemberEntity> getMember(@PathVariable String id) {
-        MemberEntity response = memberService.getMember(id);
-        return ApiResponse.success(response);
+    public ApiResponse<MemberResponse> getMember(@PathVariable String id) {
+        return ApiResponse.success(MemberResponse.from(memberService.getMember(id)));
     }
 }

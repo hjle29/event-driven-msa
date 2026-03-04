@@ -1,0 +1,3 @@
+CREATE DATABASE memberdb;
+CREATE DATABASE orderdb;
+CREATE DATABASE settlementdb;

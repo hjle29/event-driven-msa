@@ -3,10 +3,10 @@ server:
 
 spring:
   application:
-    name: order-service
+    name: settlement-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/orderdb
+    url: jdbc:postgresql://localhost:5432/settlementdb
     username: postgres
     password: password
     hikari:
@@ -37,6 +37,12 @@ spring:
     type: redis
     redis:
       time-to-live: 300000
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 eureka:
   client:
