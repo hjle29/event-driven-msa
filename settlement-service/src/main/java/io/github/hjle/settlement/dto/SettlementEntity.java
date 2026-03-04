@@ -21,7 +21,7 @@ public class SettlementEntity {
     @Column(nullable = false)
     private String userId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long orderId;
 
     @Column(nullable = false)
