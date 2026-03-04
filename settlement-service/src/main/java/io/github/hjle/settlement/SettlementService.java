@@ -5,13 +5,14 @@ import com.hjle.common.exception.ErrorCode;
 import io.github.hjle.settlement.dto.OrderResponse;
 import io.github.hjle.settlement.dto.SettlementEntity;
 import io.github.hjle.settlement.dto.SettlementResponse;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SettlementService {
@@ -24,7 +25,17 @@ public class SettlementService {
         List<OrderResponse> deliveredOrders = orderServiceClient.getOrdersByStatus("DELIVERED");
 
         for (OrderResponse order : deliveredOrders) {
-            long totalAmount = order.getTotalPrice();
+            if (settlementRepository.existsByOrderId(order.getId())) {
+                log.info("Settlement already exists for orderId={}. Skipping.", order.getId());
+                continue;
+            }
+
+            if (order.getTotalPrice() == null) {
+                log.warn("Order {} has null totalPrice. Skipping.", order.getId());
+                continue;
+            }
+
+            long totalAmount = order.getTotalPrice().longValue();
             long feeAmount = (long) (totalAmount * 0.1);
             long settlementAmount = totalAmount - feeAmount;
 
@@ -41,19 +52,19 @@ public class SettlementService {
         }
     }
 
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public SettlementResponse getSettlementByOrderId(Long orderId) {
         SettlementEntity entity = settlementRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND));
         return SettlementResponse.from(entity);
     }
 
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public List<SettlementResponse> getSettlementsByUserId(String userId) {
         return settlementRepository.findByUserId(userId)
                 .stream()
                 .map(SettlementResponse::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
@@ -61,8 +72,8 @@ public class SettlementService {
         SettlementEntity entity = settlementRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ENTITY_NOT_FOUND));
 
-        if (SettlementStatus.COMPLETED == entity.getStatus()) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        if (entity.getStatus() != SettlementStatus.READY) {
+            throw new BusinessException(ErrorCode.SETTLEMENT_ALREADY_COMPLETED);
         }
 
         entity.completeSettlement();
