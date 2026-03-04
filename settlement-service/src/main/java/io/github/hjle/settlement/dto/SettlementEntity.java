@@ -1,8 +1,10 @@
 package io.github.hjle.settlement.dto;
 
+import io.github.hjle.settlement.SettlementStatus;
 import jakarta.persistence.*;
-        import lombok.*;
-        import java.time.LocalDateTime;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "settlements")
@@ -19,7 +21,7 @@ public class SettlementEntity {
     @Column(nullable = false)
     private String userId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long orderId;
 
     @Column(nullable = false)
@@ -31,8 +33,9 @@ public class SettlementEntity {
     @Column(nullable = false)
     private Long settlementAmount;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private SettlementStatus status;
 
     private LocalDateTime settlementDate;
 
@@ -42,12 +45,12 @@ public class SettlementEntity {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = "READY";
+            this.status = SettlementStatus.READY;
         }
     }
 
     public void completeSettlement() {
-        this.status = "COMPLETED";
+        this.status = SettlementStatus.COMPLETED;
         this.settlementDate = LocalDateTime.now();
     }
 }
