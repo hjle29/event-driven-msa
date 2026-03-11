@@ -16,9 +16,12 @@ public enum ErrorCode {
     HANDLE_ACCESS_DENIED(403, "C006", "Access is denied"),
 
     // Member
-    EMAIL_DUPLICATION(400, "M001", "Email is duplicated"),
+    EMAIL_DUPLICATION(409, "M001", "Email is duplicated"),
     LOGIN_INPUT_INVALID(400, "M002", "Login input is invalid"),
     INVALID_TOKEN(401, "M003", "Invalid token"),
+    MEMBER_NOT_FOUND(404, "M004", "Member not found"),
+    INVALID_PASSWORD(400, "M005", "Invalid password"),
+    UNAUTHORIZED(401, "M006", "Unauthorized"),
 
     // Order
     ORDER_NOT_FOUND(404, "O001", "Order not found"),
