@@ -28,15 +28,13 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
-    private MemberProvider provider = MemberProvider.EMAIL;
+    private MemberProvider provider;
 
     @Column
     private String providerId;
 
     @Column(nullable = false)
-    @Builder.Default
-    private String role = "USER";
+    private String role;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
