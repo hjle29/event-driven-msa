@@ -74,6 +74,7 @@ common/event/
 └── OrderCancelledEvent.java     ← NEW
 common/exception/
 └── ErrorCode.java               ← add ORDER_CANCEL_FORBIDDEN (409, "O003")
+                                    add SETTLEMENT_ALREADY_COMPLETED (409, "S001")
 ```
 
 ---
@@ -134,7 +135,7 @@ DEAD     — exceeded maxRetries; will not be retried; requires manual intervent
 - **Response:** `ApiResponse<OrderResponse>` (200) — includes `canceledAt` in response
 - **Errors:**
   - `ORDER_NOT_FOUND` (404) — order does not exist
-  - `ORDER_CANCEL_FORBIDDEN` (409) — status is `DELIVERED`, `REFUNDED`, or already `CANCELLED`
+  - `ORDER_CANCEL_FORBIDDEN` (409) — status is `REFUNDED` or already `CANCELLED` (DELIVERED orders **can** be cancelled)
 
 ### OrderResponse additions
 Add `canceledAt` (nullable `LocalDateTime`) to `OrderResponse` and its `from(OrderEntity)` factory method.
@@ -169,7 +170,7 @@ OutboxRelayScheduler (@Scheduled fixedDelay=5000ms, up to 5s latency by design)
 POST /order/{id}/cancel
   → OrderService.cancelOrder(id)
       ├─ findById → ORDER_NOT_FOUND if missing
-      ├─ status in [DELIVERED, REFUNDED, CANCELLED] → ORDER_CANCEL_FORBIDDEN
+      ├─ status in [REFUNDED, CANCELLED] → ORDER_CANCEL_FORBIDDEN  (DELIVERED is cancellable)
       ├─ order.cancel()  ← status=CANCELLED, canceledAt=now()  (note: single 'l', matches entity field)
       └─ save OutboxEntity(topic="order-cancelled", key=orderId, payload=OrderCancelledEvent JSON)
           [single @Transactional — both writes atomic]
@@ -200,7 +201,7 @@ topic: order-cancelled
   → OrderCancelledEventConsumer.handleOrderCancelled()
       ├─ find SettlementEntity by orderId
       ├─ if exists AND status not COMPLETED → settlement.cancel() → save
-      ├─ if exists AND status == COMPLETED → log.warn("Settlement already completed for orderId={}; skipping cancel")
+      ├─ if exists AND status == COMPLETED → log.error("Settlement already completed for orderId={}; cannot cancel — ALERT") + throw BusinessException(ErrorCode.SETTLEMENT_ALREADY_COMPLETED)
       └─ if not exists → log.warn("No settlement found for orderId={}; may arrive before order-created is processed")
           [idempotent — no exception thrown in either warn case]
 
@@ -246,12 +247,12 @@ public void cancel() {
 | Scenario | Behaviour |
 |---|---|
 | Order not found | `BusinessException(ErrorCode.ORDER_NOT_FOUND)` → 404 |
-| Cancel forbidden (DELIVERED / REFUNDED / already CANCELLED) | `BusinessException(ErrorCode.ORDER_CANCEL_FORBIDDEN)` → 409 |
+| Cancel forbidden (REFUNDED / already CANCELLED) | `BusinessException(ErrorCode.ORDER_CANCEL_FORBIDDEN)` → 409 (DELIVERED is cancellable) |
 | Outbox relay Kafka failure | Increment `retryCount`; retry on next poll; mark `DEAD` after max retries |
 | Settlement `order-created` consumer failure | Retry 3x with 1s/2s/4s backoff; then DLT + `FailedEventEntity` |
 | Settlement `order-cancelled` consumer failure | Same retry + DLT config as `order-created` consumer |
 | `order-cancelled` arrives before `order-created` processed | `log.warn`, no exception — accepted known limitation |
-| Cancelling already-completed settlement | `log.warn`, skip — do not cancel a COMPLETED settlement |
+| Cancelling already-completed settlement | `log.error` + `BusinessException(ErrorCode.SETTLEMENT_ALREADY_COMPLETED)` → triggers retry → DLT → `FailedEventEntity` |
 | Duplicate `order-cancelled` event | Idempotent: second attempt hits the warn path, no state change |
 
 ---
