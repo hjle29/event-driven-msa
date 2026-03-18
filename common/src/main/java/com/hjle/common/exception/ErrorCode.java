@@ -26,9 +26,11 @@ public enum ErrorCode {
     // Order
     ORDER_NOT_FOUND(404, "O001", "Order not found"),
     ORDER_MEMBER_FETCH_FAILED(503, "O002", "Failed to fetch member info for order"),
+    ORDER_CANCEL_FORBIDDEN(409, "O003", "Order cannot be cancelled"),
 
     // Settlement
-    SETTLEMENT_ALREADY_COMPLETED(409, "S001", "Settlement already completed");
+    SETTLEMENT_ALREADY_COMPLETED(409, "S001", "Settlement is already completed and cannot be cancelled");
+
     private final int status;
     private final String code;
     private final String message;
