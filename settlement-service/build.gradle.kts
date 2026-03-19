@@ -20,6 +20,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     runtimeOnly("io.lettuce:lettuce-core")
 
+    // Kafka
+    implementation("org.springframework.kafka:spring-kafka")
+
     // Monitoring
     implementation("io.micrometer:micrometer-core")
     implementation("org.springframework.boot:spring-boot-starter-actuator")

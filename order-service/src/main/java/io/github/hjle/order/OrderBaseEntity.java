@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class OrderBaseEntity {
     private Long id;
     private String userId;
+    private String email;
     private String productId;
     private String productName;
     private Integer quantity;
