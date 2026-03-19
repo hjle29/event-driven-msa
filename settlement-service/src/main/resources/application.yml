@@ -1,43 +1,16 @@
 server:
-  port: 8083
-
+  port: 8084
 spring:
   application:
     name: settlement-service
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/settlementdb
-    username: postgres
-    password: password
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 10000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-
+    url: ${SETTLEMENT_DB_URL:jdbc:postgresql://localhost:5432/settlement_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        jdbc:
-          batch_size: 20
-          fetch_size: 100
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 2000ms
-
-  cache:
-    type: redis
-    redis:
-      time-to-live: 300000
-
+    show-sql: false
   kafka:
     bootstrap-servers: localhost:9092
     producer:
@@ -85,4 +58,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,circuitbreaker,circuitbreakerevents
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
