@@ -53,4 +53,8 @@ public class SettlementEntity {
         this.status = SettlementStatus.COMPLETED;
         this.settlementDate = LocalDateTime.now();
     }
+
+    public void cancel() {
+        this.status = SettlementStatus.CANCELLED;
+    }
 }
