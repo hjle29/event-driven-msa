@@ -18,7 +18,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
-        HttpStatus status = HttpStatus.valueOf(e.getErrorCode().getStatus());
-        return ResponseEntity.status(status).body(ApiResponse.error(e.getMessage()));
+        HttpStatus status = HttpStatus.resolve(e.getErrorCode().getStatus());
+        if (status == null) status = HttpStatus.INTERNAL_SERVER_ERROR;
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error(e.getMessage()));
     }
+
 }
