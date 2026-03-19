@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,25 +26,25 @@ public class OutboxRelayScheduler {
         this.maxRetries = maxRetries;
     }
 
+    @Transactional
     @Scheduled(fixedDelayString = "${outbox.relay.fixed-delay-ms:5000}")
     public void relay() {
         List<OutboxEntity> pending = outboxRepository.findRetryableWithLock(maxRetries);
         for (OutboxEntity outbox : pending) {
-            stringKafkaTemplate.send(outbox.getTopic(), outbox.getKey(), outbox.getPayload())
-                    .whenComplete((result, ex) -> {
-                        if (ex != null) {
-                            log.error("[OutboxRelay] Failed to publish. topic={}, key={}, retryCount={}",
-                                    outbox.getTopic(), outbox.getKey(), outbox.getRetryCount(), ex);
-                            outbox.markFailedOrDead(maxRetries);
-                            if (outbox.getStatus() == OutboxStatus.DEAD) {
-                                log.error("[OutboxRelay] DEAD — manual intervention required. topic={}, key={}",
-                                        outbox.getTopic(), outbox.getKey());
-                            }
-                        } else {
-                            outbox.markSent();
-                        }
-                        outboxRepository.save(outbox);
-                    });
+            try {
+                stringKafkaTemplate.send(outbox.getTopic(), outbox.getKey(), outbox.getPayload()).get();
+                outbox.markSent();
+                log.info("[OutboxRelay] Published. topic={}, key={}", outbox.getTopic(), outbox.getKey());
+            } catch (Exception ex) {
+                log.error("[OutboxRelay] Failed to publish. topic={}, key={}, retryCount={}",
+                        outbox.getTopic(), outbox.getKey(), outbox.getRetryCount(), ex);
+                outbox.markFailedOrDead(maxRetries);
+                if (outbox.getStatus() == OutboxStatus.DEAD) {
+                    log.error("[OutboxRelay] DEAD — manual intervention required. topic={}, key={}",
+                            outbox.getTopic(), outbox.getKey());
+                }
+            }
+            outboxRepository.save(outbox);
         }
     }
 }

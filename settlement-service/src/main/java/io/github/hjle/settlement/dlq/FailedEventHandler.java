@@ -15,7 +15,8 @@ public class FailedEventHandler {
 
     @KafkaListener(
             topics = {"order-created.DLT", "order-cancelled.DLT"},
-            groupId = "${spring.kafka.consumer.group-id}-dlq"
+            groupId = "${spring.kafka.consumer.group-id}-dlq",
+            containerFactory = "stringListenerContainerFactory"
     )
     public void handleDlt(ConsumerRecord<String, String> record) {
         log.error("[DLT] Failed event received. topic={}, key={}", record.topic(), record.key());

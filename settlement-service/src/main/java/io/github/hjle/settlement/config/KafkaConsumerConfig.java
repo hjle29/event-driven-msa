@@ -94,10 +94,24 @@ public class KafkaConsumerConfig {
         return config;
     }
 
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> stringListenerContainerFactory() {
+        Map<String, Object> props = consumerProps();
+        // Override value deserializer for plain string messages (DLT payloads)
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(props,
+                new StringDeserializer(), new StringDeserializer()));
+        return factory;
+    }
+
     private DefaultErrorHandler defaultErrorHandler() {
         ExponentialBackOff backOff = new ExponentialBackOff(1000L, 2.0);
         backOff.setMaxAttempts(3);
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(dltKafkaTemplate());
-        return new DefaultErrorHandler(recoverer, backOff);
+        DefaultErrorHandler handler = new DefaultErrorHandler(recoverer, backOff);
+        handler.addNotRetryableExceptions(com.hjle.common.exception.BusinessException.class);
+        return handler;
     }
 }
