@@ -45,7 +45,7 @@ public class SettlementEntity {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = SettlementStatus.PENDING;
+            this.status = SettlementStatus.READY;
         }
     }
 
