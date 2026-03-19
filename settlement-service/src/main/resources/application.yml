@@ -12,17 +12,48 @@ spring:
       ddl-auto: update
     show-sql: false
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
-      group-id: settlement-group
+      group-id: settlement-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.payment.event,com.settlement.event"
-kafka:
-  topic:
-    payment-completed: payment-completed
+        spring.json.trusted.packages: "com.hjle.common.event"
+        spring.json.value.default.type: "com.hjle.common.event.OrderCreatedEvent"
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30000
+        permitted-calls-in-half-open-state: 3
+        sliding-window-size: 100
+        sliding-window-type: count_based
+
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 100
+        interval-function: exponential-random-backoff
+
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 2s
+
 management:
   endpoints:
     web:

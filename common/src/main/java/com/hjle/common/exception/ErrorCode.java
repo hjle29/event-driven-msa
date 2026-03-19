@@ -26,7 +26,6 @@ public enum ErrorCode {
 
     // Settlement
     SETTLEMENT_ALREADY_COMPLETED(409, "S001", "Settlement already completed");
-
     private final int status;
     private final String code;
     private final String message;

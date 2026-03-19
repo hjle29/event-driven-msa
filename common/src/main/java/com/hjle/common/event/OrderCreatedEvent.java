@@ -15,5 +15,9 @@ public class OrderCreatedEvent {
     private Long orderId;
     private String userId;
     private String email;
+    private String productId;
+    private String productName;
+    private Integer quantity;
+    private Integer totalPrice;
     private LocalDateTime createdAt;
 }
