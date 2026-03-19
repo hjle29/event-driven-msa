@@ -24,6 +24,7 @@ public class OrderResponse {
     private Integer totalPrice;
     private OrderStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime canceledAt;
 
     public static OrderResponse from(OrderEntity entity) {
         return OrderResponse.builder()
@@ -36,6 +37,7 @@ public class OrderResponse {
                 .totalPrice(entity.getTotalPrice())
                 .status(entity.getStatus())
                 .createdAt(entity.getCreatedAt())
+                .canceledAt(entity.getCanceledAt())
                 .build();
     }
 }

@@ -57,4 +57,9 @@ public class OrderEntity {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    public void cancel() {
+        this.status = OrderStatus.CANCELLED;
+        this.canceledAt = LocalDateTime.now();
+    }
 }
