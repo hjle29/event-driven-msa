@@ -20,8 +20,8 @@ public class FeignErrorDecoder implements ErrorDecoder {
         return switch (response.status()) {
             case 404 -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
             case 400 -> new BusinessException(ErrorCode.PRODUCT_NOT_AVAILABLE);
-            default -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
-                    "Product service error: " + response.status());
+            default -> new BusinessException("Product service error: " + response.status(),
+                    ErrorCode.INTERNAL_SERVER_ERROR);
         };
     }
 }

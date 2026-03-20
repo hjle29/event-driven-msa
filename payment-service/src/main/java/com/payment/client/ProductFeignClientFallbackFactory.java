@@ -20,8 +20,8 @@ public class ProductFeignClientFallbackFactory implements FallbackFactory<Produc
     public ProductFeignClient create(Throwable cause) {
         return productId -> {
             log.error("Product service unavailable. productId={}, cause={}", productId, cause.getMessage());
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
-                    "Product service is currently unavailable. Please try again later.");
+            throw new BusinessException("Product service is currently unavailable. Please try again later.",
+                    ErrorCode.INTERNAL_SERVER_ERROR);
         };
     }
 }

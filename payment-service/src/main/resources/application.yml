@@ -19,6 +19,11 @@ spring:
 kafka:
   topic:
     payment-completed: payment-completed
+
+outbox:
+  relay:
+    fixed-delay-ms: 5000
+    max-retries: 5
 management:
   endpoints:
     web:
