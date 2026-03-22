@@ -10,8 +10,21 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
-    // Kafka
-    implementation("org.springframework.kafka:spring-kafka")
+    // patterns
+    implementation("io.github.resilience4j:resilience4j-spring-boot3")
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker")
+    implementation("io.github.resilience4j:resilience4j-retry")
+    implementation("io.github.resilience4j:resilience4j-timelimiter")
+    implementation("io.github.resilience4j:resilience4j-feign")
+
+    // ShedLock (distributed scheduler lock via Redis)
+    implementation("net.javacrumbs.shedlock:shedlock-spring:5.10.0")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-redis-spring:5.10.0")
+
+    // Redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    runtimeOnly("io.lettuce:lettuce-core")
 
     // Kafka
     implementation("org.springframework.kafka:spring-kafka")

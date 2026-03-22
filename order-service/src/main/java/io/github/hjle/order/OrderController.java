@@ -25,6 +25,18 @@ public class OrderController {
         return ApiResponse.success(OrderResponse.from(savedOrder));
     }
 
+    @GetMapping("/{orderId}")
+    public ApiResponse<OrderResponse> getOrder(@PathVariable Long orderId) {
+        OrderEntity order = orderService.getOrderById(orderId);
+        return ApiResponse.success(OrderResponse.from(order));
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    public ApiResponse<OrderResponse> cancelOrder(@PathVariable Long orderId) {
+        OrderEntity order = orderService.cancelOrder(orderId);
+        return ApiResponse.success(OrderResponse.from(order));
+    }
+
     @GetMapping("/{userId}/with-member")
     public ApiResponse<Map<String, Object>> getOrderWithMember(@PathVariable String userId) {
         return ApiResponse.success(orderService.getOrdersWithMember(userId));
