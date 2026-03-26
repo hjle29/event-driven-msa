@@ -12,18 +12,30 @@ spring:
       ddl-auto: update
     show-sql: false
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092,localhost:9093,localhost:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      retry-backoff-ms: 1000
+      enable-idempotence: true
+      properties:
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 120000
     consumer:
       group-id: settlement-service
       auto-offset-reset: earliest
+      enable-auto-commit: false
+      max-poll-records: 100
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "com.hjle.common.event"
         spring.json.value.default.type: "com.hjle.common.event.OrderCreatedEvent"
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
+      concurrency: 3
 
 eureka:
   client:
@@ -62,3 +74,6 @@ management:
   endpoint:
     prometheus:
       enabled: true
+
+internal:
+  secret: ${INTERNAL_SECRET:internal-secret-dev}

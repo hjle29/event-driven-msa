@@ -1,5 +1,7 @@
 package io.github.hjle.settlement.dto;
 
+import io.github.hjle.settlement.SettlementStatus;
+import io.github.hjle.settlement.domain.SettlementEntity;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,7 +17,7 @@ public class SettlementResponse {
     private Long totalAmount;
     private Long feeAmount;
     private Long settlementAmount;
-    private String status;
+    private SettlementStatus status;
     private LocalDateTime settlementDate;
     private LocalDateTime createdAt;
 
@@ -27,7 +29,7 @@ public class SettlementResponse {
                 .totalAmount(entity.getTotalAmount())
                 .feeAmount(entity.getFeeAmount())
                 .settlementAmount(entity.getSettlementAmount())
-                .status(entity.getStatus() != null ? entity.getStatus().name() : null)
+                .status(entity.getStatus())
                 .settlementDate(entity.getSettlementDate())
                 .createdAt(entity.getCreatedAt())
                 .build();

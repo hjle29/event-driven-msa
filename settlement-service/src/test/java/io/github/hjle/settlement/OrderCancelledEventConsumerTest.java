@@ -2,12 +2,13 @@ package io.github.hjle.settlement;
 
 import com.hjle.common.event.OrderCancelledEvent;
 import com.hjle.common.exception.BusinessException;
-import io.github.hjle.settlement.dto.SettlementEntity;
+import io.github.hjle.settlement.domain.SettlementEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.support.Acknowledgment;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.*;
 class OrderCancelledEventConsumerTest {
 
     @Mock SettlementRepository settlementRepository;
+    @Mock Acknowledgment acknowledgment;
 
     OrderCancelledEventConsumer consumer;
 
@@ -40,7 +42,7 @@ class OrderCancelledEventConsumerTest {
                 .status(SettlementStatus.PENDING).build();
         when(settlementRepository.findByOrderId(1L)).thenReturn(Optional.of(settlement));
 
-        consumer.handleOrderCancelled(event(1L));
+        consumer.handleOrderCancelled(event(1L), acknowledgment);
 
         assertThat(settlement.getStatus()).isEqualTo(SettlementStatus.CANCELLED);
         verify(settlementRepository).save(settlement);
@@ -54,7 +56,7 @@ class OrderCancelledEventConsumerTest {
                 .status(SettlementStatus.COMPLETED).build();
         when(settlementRepository.findByOrderId(1L)).thenReturn(Optional.of(settlement));
 
-        assertThatThrownBy(() -> consumer.handleOrderCancelled(event(1L)))
+        assertThatThrownBy(() -> consumer.handleOrderCancelled(event(1L), acknowledgment))
                 .isInstanceOf(BusinessException.class);
     }
 
@@ -62,7 +64,7 @@ class OrderCancelledEventConsumerTest {
     void no_op_when_settlement_not_found() {
         when(settlementRepository.findByOrderId(99L)).thenReturn(Optional.empty());
 
-        consumer.handleOrderCancelled(event(99L));
+        consumer.handleOrderCancelled(event(99L), acknowledgment);
 
         verify(settlementRepository, never()).save(any());
     }

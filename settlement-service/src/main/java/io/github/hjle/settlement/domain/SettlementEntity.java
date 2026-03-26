@@ -1,4 +1,4 @@
-package io.github.hjle.settlement.dto;
+package io.github.hjle.settlement.domain;
 
 import io.github.hjle.settlement.SettlementStatus;
 import jakarta.persistence.*;
@@ -33,9 +33,10 @@ public class SettlementEntity {
     @Column(nullable = false)
     private Long settlementAmount;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SettlementStatus status;
+    private SettlementStatus status = SettlementStatus.READY;
 
     private LocalDateTime settlementDate;
 
@@ -44,9 +45,6 @@ public class SettlementEntity {
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
-        if (this.status == null) {
-            this.status = SettlementStatus.READY;
-        }
     }
 
     public void completeSettlement() {

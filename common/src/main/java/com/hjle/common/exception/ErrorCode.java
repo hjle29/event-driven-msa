@@ -30,6 +30,8 @@ public enum ErrorCode {
 
     // Settlement
     SETTLEMENT_ALREADY_COMPLETED(409, "S001", "Settlement is already completed and cannot be cancelled"),
+    SETTLEMENT_NOT_FOUND(404, "S002", "Settlement not found"),
+    SETTLEMENT_NOT_IN_READY_STATE(409, "S003", "Settlement is not in READY state"),
 
     // Payment
     PAYMENT_ALREADY_VERIFIED(409, "PAY001", "Payment receipt has already been verified"),

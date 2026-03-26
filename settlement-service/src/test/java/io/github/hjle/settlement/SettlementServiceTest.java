@@ -2,7 +2,7 @@ package io.github.hjle.settlement;
 
 import com.hjle.common.exception.BusinessException;
 import com.hjle.common.exception.ErrorCode;
-import io.github.hjle.settlement.dto.SettlementEntity;
+import io.github.hjle.settlement.domain.SettlementEntity;
 import io.github.hjle.settlement.dto.SettlementResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,18 +44,18 @@ class SettlementServiceTest {
 
         assertThat(response.getOrderId()).isEqualTo(1L);
         assertThat(response.getUserId()).isEqualTo("user-1");
-        assertThat(response.getStatus()).isEqualTo("READY");
+        assertThat(response.getStatus()).isEqualTo(SettlementStatus.READY);
     }
 
     @Test
-    @DisplayName("orderId에 해당하는 정산이 없으면 BusinessException(ENTITY_NOT_FOUND) 발생")
+    @DisplayName("orderId에 해당하는 정산이 없으면 BusinessException(SETTLEMENT_NOT_FOUND) 발생")
     void getSettlementByOrderId_notFound_throwsBusinessException() {
         when(settlementRepository.findByOrderId(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> settlementService.getSettlementByOrderId(99L))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
-                        .isEqualTo(ErrorCode.ENTITY_NOT_FOUND));
+                        .isEqualTo(ErrorCode.SETTLEMENT_NOT_FOUND));
     }
 
     // ────────────────────────────────────────────────
@@ -98,23 +98,23 @@ class SettlementServiceTest {
 
         SettlementResponse response = settlementService.completeSettlement(1L);
 
-        assertThat(response.getStatus()).isEqualTo("COMPLETED");
+        assertThat(response.getStatus()).isEqualTo(SettlementStatus.COMPLETED);
         assertThat(response.getSettlementDate()).isNotNull();
     }
 
     @Test
-    @DisplayName("orderId에 해당하는 정산이 없으면 completeSettlement에서 ENTITY_NOT_FOUND 발생")
+    @DisplayName("orderId에 해당하는 정산이 없으면 completeSettlement에서 SETTLEMENT_NOT_FOUND 발생")
     void completeSettlement_notFound_throwsBusinessException() {
         when(settlementRepository.findByOrderId(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> settlementService.completeSettlement(99L))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
-                        .isEqualTo(ErrorCode.ENTITY_NOT_FOUND));
+                        .isEqualTo(ErrorCode.SETTLEMENT_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("이미 COMPLETED 상태인 정산을 다시 완료 처리하면 SETTLEMENT_ALREADY_COMPLETED 발생")
+    @DisplayName("이미 COMPLETED 상태인 정산을 다시 완료 처리하면 SETTLEMENT_NOT_IN_READY_STATE 발생")
     void completeSettlement_alreadyCompleted_throwsBusinessException() {
         SettlementEntity entity = buildEntity(1L, "user-1", SettlementStatus.COMPLETED);
         when(settlementRepository.findByOrderId(1L)).thenReturn(Optional.of(entity));
@@ -122,20 +122,19 @@ class SettlementServiceTest {
         assertThatThrownBy(() -> settlementService.completeSettlement(1L))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
-                        .isEqualTo(ErrorCode.SETTLEMENT_ALREADY_COMPLETED));
+                        .isEqualTo(ErrorCode.SETTLEMENT_NOT_IN_READY_STATE));
     }
 
     @Test
-    @DisplayName("FAILED 상태인 정산을 완료 처리해도 SETTLEMENT_ALREADY_COMPLETED 발생 (현재 동작 — I-3 이슈)")
+    @DisplayName("FAILED 상태인 정산을 완료 처리하면 SETTLEMENT_NOT_IN_READY_STATE 발생")
     void completeSettlement_failedStatus_throwsBusinessException() {
         SettlementEntity entity = buildEntity(1L, "user-1", SettlementStatus.FAILED);
         when(settlementRepository.findByOrderId(1L)).thenReturn(Optional.of(entity));
 
-        // TODO(I-3): FAILED 상태 전용 에러코드(SETTLEMENT_NOT_IN_READY_STATE) 분리 필요
         assertThatThrownBy(() -> settlementService.completeSettlement(1L))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode())
-                        .isEqualTo(ErrorCode.SETTLEMENT_ALREADY_COMPLETED));
+                        .isEqualTo(ErrorCode.SETTLEMENT_NOT_IN_READY_STATE));
     }
 
     // ────────────────────────────────────────────────
@@ -151,6 +150,37 @@ class SettlementServiceTest {
 
         assertThat(entity.getStatus()).isEqualTo(SettlementStatus.COMPLETED);
         assertThat(entity.getSettlementDate()).isNotNull();
+    }
+
+    // ────────────────────────────────────────────────
+    // SettlementResponse.from
+    // ────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("SettlementResponse.from: status가 null이면 response의 status도 null이다")
+    void settlementResponse_from_nullStatus_returnsNullStatus() {
+        SettlementEntity entity = SettlementEntity.builder()
+                .userId("user-1")
+                .orderId(1L)
+                .totalAmount(10000L)
+                .feeAmount(1000L)
+                .settlementAmount(9000L)
+                .status(null)
+                .build();
+
+        SettlementResponse response = SettlementResponse.from(entity);
+
+        assertThat(response.getStatus()).isNull();
+    }
+
+    @Test
+    @DisplayName("SettlementResponse.from: status가 존재하면 name()이 반환된다")
+    void settlementResponse_from_withStatus_returnsStatusName() {
+        SettlementEntity entity = buildEntity(1L, "user-1", SettlementStatus.COMPLETED);
+
+        SettlementResponse response = SettlementResponse.from(entity);
+
+        assertThat(response.getStatus()).isEqualTo(SettlementStatus.COMPLETED);
     }
 
     // ────────────────────────────────────────────────
