@@ -1,85 +1,36 @@
 server:
   port: 8081
-
 spring:
   application:
     name: member-service
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/memberdb
-    username: postgres
-    password: password
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 10000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-
+    url: ${MEMBER_DB_URL:jdbc:postgresql://localhost:5432/member_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
   jpa:
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        jdbc:
-          batch_size: 20
-          fetch_size: 100
-
+    show-sql: false
   data:
     redis:
-      host: localhost
-      port: 6379
-      timeout: 2000ms
-
-  cache:
-    type: redis
-    redis:
-      time-to-live: 300000
-
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 jwt:
-  secret: mySecretKeyForJwtTokenGenerationMustBeLongEnough128bits!!
-  access-token-expiry: 1800000
+  secret: ${JWT_SECRET:your-256-bit-secret-key-for-development-only}
+  access-token-expiry: 3600000
   refresh-token-expiry: 604800000
-
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-
-resilience4j:
-  circuitbreaker:
-    configs:
-      default:
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 30000
-        permitted-calls-in-half-open-state: 3
-        sliding-window-size: 100
-        sliding-window-type: count_based
-
-  retry:
-    configs:
-      default:
-        max-attempts: 3
-        wait-duration: 100
-        interval-function: exponential-random-backoff
-
-  timelimiter:
-    configs:
-      default:
-        timeout-duration: 2s
-
 management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,circuitbreaker,circuitbreakerevents
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
+resilience4j:
+  circuitbreaker:
+    instances:
+      socialLogin:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s

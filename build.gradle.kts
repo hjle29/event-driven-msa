@@ -35,9 +35,17 @@ subprojects {
         compileOnly("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
         testImplementation("org.springframework.boot:spring-boot-starter-test")
+        implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("io.micrometer:micrometer-registry-prometheus")
     }
 
     tasks.withType<Test> {
         useJUnitPlatform()
+        jvmArgs(
+            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+            "-Dnet.bytebuddy.experimental=true"
+        )
     }
 }

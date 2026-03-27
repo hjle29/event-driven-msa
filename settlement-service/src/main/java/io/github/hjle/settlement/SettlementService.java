@@ -1,7 +1,10 @@
 package io.github.hjle.settlement;
 
+import com.hjle.common.exception.BusinessException;
+import com.hjle.common.exception.ErrorCode;
 import io.github.hjle.settlement.dto.OrderResponse;
-import io.github.hjle.settlement.dto.SettlementEntity;
+import io.github.hjle.settlement.domain.SettlementEntity;
+import io.github.hjle.settlement.dto.SettlementResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,5 +50,33 @@ public class SettlementService {
 
             settlementRepository.save(settlement);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public SettlementResponse getSettlementByOrderId(Long orderId) {
+        SettlementEntity entity = settlementRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SETTLEMENT_NOT_FOUND));
+        return SettlementResponse.from(entity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SettlementResponse> getSettlementsByUserId(String userId) {
+        return settlementRepository.findByUserId(userId)
+                .stream()
+                .map(SettlementResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public SettlementResponse completeSettlement(Long orderId) {
+        SettlementEntity entity = settlementRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SETTLEMENT_NOT_FOUND));
+
+        if (entity.getStatus() != SettlementStatus.READY) {
+            throw new BusinessException(ErrorCode.SETTLEMENT_NOT_IN_READY_STATE);
+        }
+
+        entity.completeSettlement();
+        return SettlementResponse.from(entity);
     }
 }
