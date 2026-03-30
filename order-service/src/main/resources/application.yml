@@ -7,8 +7,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://localhost:5432/orderdb
-    username: postgres
-    password: password
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -39,10 +39,17 @@ spring:
       time-to-live: 300000
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092,localhost:9093,localhost:9094}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      retry-backoff-ms: 1000
+      enable-idempotence: true
+      properties:
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 120000
 
 
 eureka:
